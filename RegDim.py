@@ -176,24 +176,9 @@ for i in images:
             # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
             # plt.show()
     
-    print(np.max(reg_heights), np.average(reg_heights))
-    # #Reset plots to default figure size
-    # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-    # plt.gca().invert_yaxis()
     
-    # plt.plot(*polyLine.xy, 'm.-')
-    # plt.axline((cx,cy), slope=1/1.5590194017803993,color='g')
-    # plt.plot(cx,cy,'r.')
-    # x_left, x_right = plt.gca().get_xlim()
-    # y_low, y_high = plt.gca().get_ylim()
-    # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))*aspect)
-    # plt.show()
+    print("Average height: ", np.average(reg_heights))
+    print("Average width: ", np.average(reg_widths))
+    print("Area: ", cv2.contourArea(mainCont))
+   
     
-    
-    # cv2.drawContours(img,[box],0,(0,0,255),1)
-    # cv2.drawContours(img, [mainCont], -1, (0,255,0), 1) 
-    # cv2.circle(img, (cx,cy), 2, (0,0,255), -1)
-    # # cv2.rotate(img, rect[3])
-    # cv2.imshow('g', img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
