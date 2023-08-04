@@ -92,8 +92,8 @@ for i in images:
     imgGray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     inverted = cv2.bitwise_not(imgGray)
     cont, hier = cv2.findContours(inverted, 1,2)
+ 
     
-        
     mainCont = []
     largestArea = 0  
     for k in cont:
@@ -176,9 +176,25 @@ for i in images:
             # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
             # plt.show()
     
+    plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
+    plt.gca().invert_yaxis()
+    plt.plot(*polyLine.xy)
+    x_left, x_right = plt.gca().get_xlim()
+    y_low, y_high = plt.gca().get_ylim()
+    plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
+    
+    plt.show()
     
     print("Average height: ", np.average(reg_heights))
+    print("Max height: ", np.max(reg_heights))
     print("Average width: ", np.average(reg_widths))
+    print("Max width: ", np.max(reg_widths))
     print("Area: ", cv2.contourArea(mainCont))
+    print("Rectange h,w: ", rect[1])
+    cv2.drawContours(img, k, -1, (255,0, 0), 2)
+    cv2.drawContours(img,[box],0,(0,255,0),2)
+    cv2.imshow("Image", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
    
     
