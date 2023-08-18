@@ -99,6 +99,34 @@ def getMaxDist(x,y):
     return maxDist
 
 
+def calcDistance(x_points, y_points, w, s, realContour):
+    allWidths = []
+    
+    for p in range(len(x_points)):
+        #create horizontal line
+        nx, ny = getLinePoints(x_points[p], y_points[p], w, s)
+        stack = np.stack((nx, ny), axis=-1)
+        lineString = shapely.geometry.LineString(stack)
+        
+        if(lineString.intersects(realContour)):
+            interPoints = lineString.intersection(realContour)
+            a,b = getPointsofObject(interPoints)
+           
+            allWidths.append(getMaxDist(a, b))
+            
+            plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
+            plt.gca().invert_yaxis()
+            plt.plot(x_points, y_points)
+            plt.plot(nx,ny)
+            plt.plot(*realContour.xy)
+            x_left, x_right = plt.gca().get_xlim()
+            y_low, y_high = plt.gca().get_ylim()
+            plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
+            plt.show()
+            
+            
+    return allWidths
+    
 
 def getProfile(img):
     '''
@@ -260,76 +288,32 @@ for i in images:
   
         #generate line going length wise
         vslope, hslope = getSlopes(box)
-        vx, vy = getLinePoints(cx, cy, width, vslope)
+        vx, vy = getLinePoints(cx, cy, height, vslope)
     
         # calculate all widths
-        reg_widths = []
-        for p in range(len(vx)):
-            #create horizontal line
-            nx, ny = getLinePoints(vx[p], vy[p], width, hslope)
-            stack = np.stack((nx, ny), axis=-1)
-            lineString = shapely.geometry.LineString(stack)
-            
-            if(lineString.intersects(polyLine)):
-                interPoints = lineString.intersection(polyLine)
-                a,b = getPointsofObject(interPoints)
-               
-                reg_widths.append(getMaxDist(a, b))
-                # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-                # plt.gca().invert_yaxis()
-                # plt.plot(vx,vy)
-                # plt.plot(nx,ny)
-                # plt.plot(*polyLine.xy)
-                # x_left, x_right = plt.gca().get_xlim()
-                # y_low, y_high = plt.gca().get_ylim()
-                # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
-                # plt.show()
-            
+        reg_widths = calcDistance(vx, vy, width, hslope, polyLine)
     
-    
-        #generate line going width wise
-        hx, hy = getLinePoints(cx, cy, width, hslope)    
+        # #generate line going width wise
+        # hx, hy = getLinePoints(cx, cy, width, hslope)    
             
-        #calculate all heights
-        reg_heights = []
-        for p in range(len(vx)):
-            #create vertical line
-            nx, ny = getLinePoints(hx[p], hy[p], width, vslope)
-            
-            #create Shapely geo object for line
-            stack = np.stack((nx, ny), axis=-1)
-            lineString = shapely.geometry.LineString(stack)
-            
-            if(lineString.intersects(polyLine)):
-                interPoints = lineString.intersection(polyLine)
-                a,b = getPointsofObject(interPoints)
-               
-                reg_heights.append(getMaxDist(a, b))
-                # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-                # plt.gca().invert_yaxis()
-                # plt.plot(vx,vy)
-                # plt.plot(nx,ny)
-                # plt.plot(*polyLine.xy)
-                # x_left, x_right = plt.gca().get_xlim()
-                # y_low, y_high = plt.gca().get_ylim()
-                # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
-                # plt.show()
+        # #calculate all heights
+        # reg_heights = calcDistance(hx, hy, height, vslope, polyLine)
+      
+        # plt.title(i)
+        # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
+        # plt.gca().invert_yaxis()
+        # plt.plot(*polyLine.xy)
+        # x_left, x_right = plt.gca().get_xlim()
+        # y_low, y_high = plt.gca().get_ylim()
+        # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
         
-        plt.title(i)
-        plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-        plt.gca().invert_yaxis()
-        plt.plot(*polyLine.xy)
-        x_left, x_right = plt.gca().get_xlim()
-        y_low, y_high = plt.gca().get_ylim()
-        plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
-        
-        plt.show()
-        print("Image: ", i)
-        print("Average height: ", np.average(reg_heights))
-        print("Max height: ", np.max(reg_heights))
-        print("Average width: ", np.average(reg_widths))
-        print("Max width: ", np.max(reg_widths))
-        print("Area: ", cv2.contourArea(cont))
-        print("Rectange h,w: ", rect[1])
-        print("\n")
+        # plt.show()
+        # print("Image: ", i)
+        # print("Average height: ", np.average(reg_heights))
+        # print("Max height: ", np.max(reg_heights))
+        # print("Average width: ", np.average(reg_widths))
+        # print("Max width: ", np.max(reg_widths))
+        # print("Area: ", cv2.contourArea(cont))
+        # print("Rectange h,w: ", rect[1])
+        # print("\n")
     
