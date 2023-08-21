@@ -167,6 +167,12 @@ def getProfile(img):
 
 
 def getMask(img, r, c, width, height):
+    '''
+    r,c are essentially the coordinate for the top left corner of the rectange
+    r: row to start, aka top
+    c: column to start, aka left
+    returns: rectangular mask
+    '''
     blackBoard = np.zeros(shape=img.shape, dtype=np.uint8)    
     blackBoard[r:r+height, c:c+width] = 255
     
@@ -193,6 +199,12 @@ def cropImageCoords(img, col, width, padding):
 
 
 def findRegoliths(img, d, vSearch):
+    '''
+    img: opencv array
+    d: padding for left, right, top, bottom when cropping
+    vSearch: boolean representing if the image is has been rotated or not
+    returns: cropped image(s) array, cropped coordinates array [[leftmost column, full wdith]..]
+    '''
     allCoordinates = []
     croppedRegions = []
     leftPointer = 0
@@ -200,6 +212,7 @@ def findRegoliths(img, d, vSearch):
     
     mi = np.min(p)
     mx = np.max(p)
+    
     if vSearch:
         th = (mi+mx)/2
     else:
@@ -224,7 +237,7 @@ def findRegolithConoturs(colour_img):
     imageObj = cv2.cvtColor(colour_img, cv2.COLOR_BGR2GRAY)
     imageObj = cv2.bilateralFilter(imageObj, 35, 50, 50)
     
-    #get colums of interest
+    #get crops of interest
     verticalCrops, column_coords = findRegoliths(imageObj, span, True)
     for i in range(len(verticalCrops)):        
         c_coord = column_coords[i]
