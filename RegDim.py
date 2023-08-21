@@ -256,9 +256,9 @@ MAIN
 '''
 
 
-imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/WhiteBackGround"
+imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory"
 destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/Measurement_Routine_Output"
-excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions"
+excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory"
 dirPictures = os.listdir(imagePath)
 span = 20
 df = pd.DataFrame(columns=['Image_Name', 'Position', 'Average_Height', 'Max_Height', 'Average_Width', 'Max_Width', 'Area', 'Rectangle_Dim' ])
