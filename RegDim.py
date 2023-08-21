@@ -201,7 +201,7 @@ def findRegoliths(img, d, vSearch):
     mi = np.min(p)
     mx = np.max(p)
     if vSearch:
-        th = (mi+mx)/2
+        th = (mi+mx)*(1/3)
     else:
         th = mx*0.95
 
