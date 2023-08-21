@@ -244,7 +244,10 @@ def findRegolithConoturs(colour_img):
             newImg = cv2.medianBlur(newImg, 9)
             (T, threshInv) = cv2.threshold(newImg, 0, 255,  cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
             
-            
+            plt.imshow(horizontalCrop[m])
+            plt.show()
+            plt.imshow(piece)
+            plt.show()
             contours, _ = cv2.findContours(threshInv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             allContours.extend(contours)
 
@@ -257,7 +260,7 @@ MAIN
 
 
 imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory"
-destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/Measurement_Routine_Output"
+destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory/Routine_Output"
 excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory"
 dirPictures = os.listdir(imagePath)
 span = 20
@@ -310,8 +313,9 @@ for i in images:
         
         profile = getProfile(crop)
         
-        plt.plot(profile)
-  
+        plt.plot(profile, label=str(j+1))
+    
+    plt.legend()
     plt.show()
     
     
