@@ -201,7 +201,7 @@ def findRegoliths(img, d, vSearch):
     mi = np.min(p)
     mx = np.max(p)
     if vSearch:
-        th = (mi+mx)*(1/3)
+        th = (mi+mx)/2
     else:
         th = mx*0.95
 
@@ -263,6 +263,7 @@ imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory"
 destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory/Routine_Output"
 excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/TestDirectory"
 dirPictures = os.listdir(imagePath)
+acceptedFileType = ["jpg", "tif", "png"]
 span = 20
 df = pd.DataFrame(columns=['Image_Name', 'Position', 'Average_Height', 'Max_Height', 'Average_Width', 'Max_Width', 'Area', 'Rectangle_Dim' ])
 
@@ -271,7 +272,7 @@ images = []
 for i in range(len(dirPictures)):
     image_name = dirPictures[i]
     
-    if image_name.split('.')[-1].lower() == "jpg":
+    if image_name.split('.')[-1].lower() in acceptedFileType:
         images.append(image_name)
         
 
