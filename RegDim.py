@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
@@ -6,9 +5,33 @@ import os
 from shutil import rmtree
 import shapely
 import Module.Functions as fb
+import pandas as pd
 
 
-Threshold = 80
+def drawLabel(image, contour, num):
+    '''
+    draws label num directly on image at the center of mass of the contour
+    '''
+    M = cv2.moments(contour)
+    cx= int(M['m10']/M['m00'])
+    cy= int(M['m01']/M['m00'])
+    cv2.putText(image, text= str(num), org=(cx-5,cy),
+        fontFace= cv2.FONT_HERSHEY_SIMPLEX, fontScale=2, color=(0,0,0),
+        thickness=3, lineType=cv2.LINE_AA)
+    
+    
+def leftToRight(contours):
+    '''
+    return the array of contours sorted from left to right according to their center of mass
+    '''
+    com_x = []
+    
+    for c in contours:
+        M = cv2.moments(c)
+        com_x.append(M['m10']/M['m00'])
+        
+    return np.argsort(com_x)
+
 
 def getSlopes(points):
     '''
@@ -114,15 +137,15 @@ def calcDistance(x_points, y_points, w, s, realContour):
            
             allWidths.append(getMaxDist(a, b))
             
-            plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-            plt.gca().invert_yaxis()
-            plt.plot(x_points, y_points)
-            plt.plot(nx,ny)
-            plt.plot(*realContour.xy)
-            x_left, x_right = plt.gca().get_xlim()
-            y_low, y_high = plt.gca().get_ylim()
-            plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
-            plt.show()
+            # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
+            # plt.gca().invert_yaxis()
+            # plt.plot(x_points, y_points)
+            # plt.plot(nx,ny)
+            # plt.plot(*realContour.xy)
+            # x_left, x_right = plt.gca().get_xlim()
+            # y_low, y_high = plt.gca().get_ylim()
+            # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
+            # plt.show()
             
             
     return allWidths
@@ -169,7 +192,7 @@ def cropImageCoords(img, col, width, padding):
     return img[:, cs:ce],[cs,ce-cs]
 
 
-def findRegoliths(img,d, vSearch):
+def findRegoliths(img, d, vSearch):
     allCoordinates = []
     croppedRegions = []
     leftPointer = 0
@@ -201,29 +224,29 @@ def findRegolithConoturs(colour_img):
     imageObj = cv2.cvtColor(colour_img, cv2.COLOR_BGR2GRAY)
     imageObj = cv2.bilateralFilter(imageObj, 35, 50, 50)
     
-    "get colums of interest"
+    #get colums of interest
     verticalCrops, column_coords = findRegoliths(imageObj, span, True)
-    for i in range(len(verticalCrops)):
+    for i in range(len(verticalCrops)):        
         c_coord = column_coords[i]
         
         piece = verticalCrops[i]
         piece = np.transpose(np.array(piece))
         
         horizontalCrop, row_coords = findRegoliths(piece, span, False)
-        row_coords = row_coords[0]
         
-        mask = getMask(imageObj, row_coords[0], c_coord[0], c_coord[1], row_coords[1])
-        
-
-        newImg = np.bitwise_and(imageObj,mask)
-        r,c = np.where(newImg==0)
-        newImg[r,c] = 255
-        newImg = cv2.medianBlur(newImg, 9)
-        (T, threshInv) = cv2.threshold(newImg, 0, 255,  cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
-        
-        
-        contours, _ = cv2.findContours(threshInv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        allContours.extend(contours)
+        for m in range(len(horizontalCrop)):            
+            r_coord = row_coords[m]
+            mask = getMask(imageObj, r_coord[0], c_coord[0], c_coord[1], r_coord[1])
+            
+            newImg = np.bitwise_and(imageObj,mask)
+            r,c = np.where(newImg==0)
+            newImg[r,c] = 255
+            newImg = cv2.medianBlur(newImg, 9)
+            (T, threshInv) = cv2.threshold(newImg, 0, 255,  cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+            
+            
+            contours, _ = cv2.findContours(threshInv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            allContours.extend(contours)
 
     return allContours
 
@@ -234,14 +257,20 @@ MAIN
 
 
 imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/WhiteBackGround"
+destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/Measurement_Routine_Output"
+excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions"
 dirPictures = os.listdir(imagePath)
 span = 20
+df = pd.DataFrame(columns=['Image_Name', 'Position', 'Average_Height', 'Max_Height', 'Average_Width', 'Max_Width', 'Area', 'Rectangle_Dim' ])
 
 # create list of image names
 images = []
-for i in dirPictures: 
-    if i.split('.')[-1].lower() == "jpg":
-        images.append(i)
+for i in range(len(dirPictures)):
+    image_name = dirPictures[i]
+    
+    if image_name.split('.')[-1].lower() == "jpg":
+        images.append(image_name)
+        
 
 # create new folder for images without background and new folder for whitened samples
 #TODO: make creation directories variable
@@ -266,7 +295,30 @@ for i in images:
         
     regolith_contours = findRegolithConoturs(img)
     
-    for cont in regolith_contours:    
+    #sort contours to appear from left to right
+    sortedIndex = leftToRight(regolith_contours)
+    regolith_contours = [newK for _, newK in sorted(zip(sortedIndex, regolith_contours))]
+    
+    #get intensity profile of this crop, CAN BE REMOVED LATER
+    plt.title(i)    
+    for j in range(len(regolith_contours)):   
+        cont = regolith_contours[j]
+        #Draw rect
+        x,y,w,h = cv2.boundingRect(cont)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        crop = gray[y:y+h, x:x+w]
+        
+        profile = getProfile(crop)
+        
+        plt.plot(profile)
+  
+    plt.show()
+    
+    
+    contourCounter = 1
+    for j in range(len(regolith_contours)):
+        cont = regolith_contours[j]
+        
         #Draw rect
         rect = cv2.minAreaRect(cont)
         height = rect[1][0]
@@ -286,34 +338,57 @@ for i in images:
         rCont = np.squeeze(cont, axis=1)
         polyLine = shapely.geometry.LineString(rCont)
   
-        #generate line going length wise
+        #get slopes of line
         vslope, hslope = getSlopes(box)
+        
+        #generate line going length wise
         vx, vy = getLinePoints(cx, cy, height, vslope)
+    
+        #generate line going width wise
+        hx, hy = getLinePoints(cx, cy, width, hslope)    
+        
     
         # calculate all widths
         reg_widths = calcDistance(vx, vy, width, hslope, polyLine)
-    
-        # #generate line going width wise
-        # hx, hy = getLinePoints(cx, cy, width, hslope)    
-            
-        # #calculate all heights
-        # reg_heights = calcDistance(hx, hy, height, vslope, polyLine)
+
+        # calculate all heights
+        reg_heights = calcDistance(hx, hy, height, vslope, polyLine)
       
-        # plt.title(i)
-        # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-        # plt.gca().invert_yaxis()
-        # plt.plot(*polyLine.xy)
-        # x_left, x_right = plt.gca().get_xlim()
-        # y_low, y_high = plt.gca().get_ylim()
-        # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
         
-        # plt.show()
-        # print("Image: ", i)
-        # print("Average height: ", np.average(reg_heights))
-        # print("Max height: ", np.max(reg_heights))
-        # print("Average width: ", np.average(reg_widths))
-        # print("Max width: ", np.max(reg_widths))
-        # print("Area: ", cv2.contourArea(cont))
-        # print("Rectange h,w: ", rect[1])
-        # print("\n")
+        plt.title(i)
+        plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
+        plt.gca().invert_yaxis()
+        plt.plot(*polyLine.xy)
+        x_left, x_right = plt.gca().get_xlim()
+        y_low, y_high = plt.gca().get_ylim()
+        plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
+        
+        plt.show()
+        
+        if(len(reg_heights) > 0 and len(reg_widths) > 0):
+            cv2.drawContours(img, [cont], -1, (0,255,0), 3)
+            drawLabel(img, cont, contourCounter)
+            print("Image: ", i)
+            print("Average height: ", np.average(reg_heights))
+            print("Max height: ", np.max(reg_heights))
+            print("Average width: ", np.average(reg_widths))
+            print("Max width: ", np.max(reg_widths))
+            print("Area: ", cv2.contourArea(cont))
+            print("Rectange h,w: ", rect[1])
+            print("\n")
+            
+            r_coord = [int(x) for x in rect[1]]
+            rectange_dimString = '(' + ','.join(map(str, r_coord)) + ')'
+            
+            df.loc[len(df)] = [i, contourCounter,np.average(reg_heights), np.max(reg_heights),
+                               np.average(reg_widths), np.max(reg_widths), cv2.contourArea(cont),
+                               rectange_dimString]
+            
+            contourCounter = contourCounter + 1
+    
+    cv2.imwrite(destPath  + '/' + i, img)
+        
+    
+df.to_excel(excelPath+'/'+"Avearge_Dimensions_White.xlsx", index=False)
+
     
