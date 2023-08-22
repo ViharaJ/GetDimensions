@@ -28,7 +28,11 @@ def leftToRight(contours):
     
     for c in contours:
         M = cv2.moments(c)
-        com_x.append(M['m10']/M['m00'])
+        #TODO: Insert ERROR HANDLER HERE
+        if(M['m00'] != 0):
+            com_x.append(M['m10']/M['m00'])
+        else:
+            com_x.append(100000)
         
     return np.argsort(com_x)
 
@@ -269,7 +273,8 @@ MAIN
 '''
 
 
-imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/WhiteBackGround"
+imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/ManualSegmentation"
+imagePath2="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/BlueBackground"
 destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/Measurement_Routine_Output"
 excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions"
 dirPictures = os.listdir(imagePath)
@@ -304,11 +309,14 @@ for i in range(len(dirPictures)):
 
 # start of the loop to remove the background
 for i in images:
-    img = cv2.imread(imagePath + '/' + i) # load image
+    img = cv2.imread(imagePath + '/' + i, cv2.IMREAD_UNCHANGED) # load image
+    
+    img2 = cv2.imread(imagePath2 + '/' + i)
     h, w = img.shape[:2]
     aspect = w/h
         
-    regolith_contours = findRegolithConoturs(img)
+    regolith_contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    
     
     #sort contours to appear from left to right
     sortedIndex = leftToRight(regolith_contours)
@@ -342,65 +350,68 @@ for i in images:
         #get coords of box
         box = cv2.boxPoints(rect)
         box = np.int0(box)
-    
+        
         #get center of mass of contour
         M = cv2.moments(cont)
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-
-    
-        #create shapely Object for regolith
-        rCont = np.squeeze(cont, axis=1)
-        polyLine = shapely.geometry.LineString(rCont)
-  
-        #get slopes of line
-        vslope, hslope = getSlopes(box)
         
-        #generate line going length wise
-        vx, vy = getLinePoints(cx, cy, height, vslope)
+        if(M['m00'] != 0):
+           
+            cx = int(M['m10']/M['m00'])
+            cy = int(M['m01']/M['m00'])
     
-        #generate line going width wise
-        hx, hy = getLinePoints(cx, cy, width, hslope)    
         
-    
-        # calculate all widths
-        reg_widths = calcDistance(vx, vy, width, hslope, polyLine)*scale
-
-        # calculate all heights
-        reg_heights = calcDistance(hx, hy, height, vslope, polyLine)*scale
+            #create shapely Object for regolith
+            rCont = np.squeeze(cont, axis=1)
+            polyLine = shapely.geometry.LineString(rCont)
       
+            #get slopes of line
+            vslope, hslope = getSlopes(box)
+            
+            #generate line going length wise
+            vx, vy = getLinePoints(cx, cy, height, vslope)
         
-        # plt.title(i)
-        # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-        # plt.gca().invert_yaxis()
-        # plt.plot(*polyLine.xy)
-        # x_left, x_right = plt.gca().get_xlim()
-        # y_low, y_high = plt.gca().get_ylim()
-        # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
+            #generate line going width wise
+            hx, hy = getLinePoints(cx, cy, width, hslope)    
+            
         
-        # plt.show()
-        
-        if(len(reg_heights) > 0 and len(reg_widths) > 0):
-            cv2.drawContours(img, [cont], -1, (0,255,0), 3)
-            drawLabel(img, cont, contourCounter)
-            print("Image: ", i)
-            print("Average height: ", np.average(reg_heights))
-            print("Max height: ", np.max(reg_heights))
-            print("Average width: ", np.average(reg_widths))
-            print("Max width: ", np.max(reg_widths))
-            print("Area: ", cv2.contourArea(cont)*scale**2)
-            print("\n")
-            
-            
-            
-            df.loc[len(df)] = [i, contourCounter,np.average(reg_heights), np.max(reg_heights),
-                               np.average(reg_widths), np.max(reg_widths), cv2.contourArea(cont)*scale**2]
-            
-            contourCounter = contourCounter + 1
+            # calculate all widths
+            reg_widths = calcDistance(vx, vy, width, hslope, polyLine)*scale
     
-    cv2.imwrite(destPath  + '/' + i, img)
+            # calculate all heights
+            reg_heights = calcDistance(hx, hy, height, vslope, polyLine)*scale
+          
+            
+            # plt.title(i)
+            # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
+            # plt.gca().invert_yaxis()
+            # plt.plot(*polyLine.xy)
+            # x_left, x_right = plt.gca().get_xlim()
+            # y_low, y_high = plt.gca().get_ylim()
+            # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
+            
+            # plt.show()
+            
+            if(len(reg_heights) > 0 and len(reg_widths) > 0):
+                cv2.drawContours(img2, [cont], -1, (0,255,0), 3)
+                drawLabel(img2, cont, contourCounter)
+                print("Image: ", i)
+                print("Average height: ", np.average(reg_heights))
+                print("Max height: ", np.max(reg_heights))
+                print("Average width: ", np.average(reg_widths))
+                print("Max width: ", np.max(reg_widths))
+                print("Area: ", cv2.contourArea(cont)*scale**2)
+                print("\n")
+                
+                
+                
+                df.loc[len(df)] = [i, contourCounter,np.average(reg_heights), np.max(reg_heights),
+                                   np.average(reg_widths), np.max(reg_widths), cv2.contourArea(cont)*scale**2]
+                
+                contourCounter = contourCounter + 1
+    
+    cv2.imwrite(destPath  + '/' + i, img2)
         
 df.sort_values(["Image_Name", "Position"], inplace=True)
-df.to_excel(excelPath+'/'+"Avearge_Dimensions_White.xlsx", index=False)
+df.to_excel(excelPath+'/'+"Avearge_Dimensions_Blue.xlsx", index=False)
 
     
