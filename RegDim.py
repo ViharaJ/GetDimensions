@@ -273,8 +273,8 @@ MAIN
 '''
 
 
-imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/ManualSegmentation"
-imagePath2="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/BlueBackground"
+imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/ManualSegmentation2"
+imagePath2="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/WhiteBackGround"
 destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/Measurement_Routine_Output"
 excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions"
 dirPictures = os.listdir(imagePath)
@@ -412,6 +412,6 @@ for i in images:
     cv2.imwrite(destPath  + '/' + i, img2)
         
 df.sort_values(["Image_Name", "Position"], inplace=True)
-df.to_excel(excelPath+'/'+"Avearge_Dimensions_Blue.xlsx", index=False)
+df.to_excel(excelPath+'/'+"Avearge_Dimensions_Single.xlsx", index=False)
 
     
