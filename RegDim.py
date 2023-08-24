@@ -274,7 +274,7 @@ destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/Measurement_Ro
 excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions"
 dirPictures = os.listdir(imagePath)
 acceptedFileTypes = ["jpg", "png", "tif"]
-span = 20
+span = 35
 scale = 0.05
 df = pd.DataFrame(columns=['Image_Name', 'Position', 'Average_Height (mm)', 'Max_Height (mm)', 'Average_Width (mm)', 'Max_Width  (mm)', 'Area  (mm^2)'])
 
@@ -399,7 +399,8 @@ for i in images:
             contourCounter = contourCounter + 1
     
     cv2.imwrite(destPath  + '/' + i, img)
-        
+    print("Wrote image, ", i) 
+    
 df.sort_values(["Image_Name", "Position"], inplace=True)
 df.to_excel(excelPath+'/'+"Avearge_Dimensions_White.xlsx", index=False)
 
