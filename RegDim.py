@@ -7,7 +7,7 @@ import shapely
 import Module.Functions as fb
 import pandas as pd
 
-
+#==========================FUNCTIONS=====================================
 def drawLabel(image, contour, num):
     '''
     draws label num directly on image at the center of mass of the contour
@@ -22,7 +22,8 @@ def drawLabel(image, contour, num):
     
 def leftToRight(contours):
     '''
-    return the array of contours sorted from left to right according to their center of mass
+    return the input array of contours sorted from left to right according to their 
+    center of mass
     '''
     com_x = []
     
@@ -264,16 +265,24 @@ def findRegolithConoturs(colour_img):
     return allContours
 
 
-'''
-MAIN
-'''
+def createDir(root, folderName):
+    '''
+    creates new folder if it doesn't exist
+    returns: new folder's path
+    '''
+    newPath = os.path.join(root, folderName)
+    if not os.path.exists(newPath):
+        os.makedirs(newPath)
+        
+    return newPath
+#================================MAIN=========================================
+imagePath="C:/Users/v.jayaweera/Documents/Tim/Porosity/PNG"
+destPath = createDir(imagePath, "Dimension_Routine_Output")
+excelPath = destPath
 
-
-imagePath="C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/WhiteBackGround"
-destPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions/Measurement_Routine_Output"
-excelPath = "C:/Users/v.jayaweera/Documents/Tim/Average Dimensions"
 dirPictures = os.listdir(imagePath)
 acceptedFileTypes = ["jpg", "png", "tif"]
+
 span = 35
 scale = 0.05
 df = pd.DataFrame(columns=['Image_Name', 'Position', 'Average_Height (mm)', 'Max_Height (mm)', 'Average_Width (mm)', 'Max_Width  (mm)', 'Area  (mm^2)'])
@@ -286,22 +295,6 @@ for i in range(len(dirPictures)):
     if image_name.split('.')[-1].lower() in acceptedFileTypes:
         images.append(image_name)
         
-
-# create new folder for images without background and new folder for whitened samples
-#TODO: make creation directories variable
-# try: 
-#     os.mkdir("../Without_Background")
-# except: 
-#     rmtree("../Without_Background")
-#     os.mkdir("../Without_Background")
-
-# try: 
-#     os.mkdir("../White_Sample")
-# except: 
-#     rmtree("../White_Sample")
-#     os.mkdir("../White_Sample")
-
-
 # start of the loop to remove the background
 for i in images:
     img = cv2.imread(imagePath + '/' + i) # load image
