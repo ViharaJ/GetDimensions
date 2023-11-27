@@ -307,22 +307,6 @@ for i in images:
     sortedIndex = leftToRight(regolith_contours)
     regolith_contours = [newK for _, newK in sorted(zip(sortedIndex, regolith_contours))]
     
-    #get intensity profile of this crop, CAN BE REMOVED LATER
-    # plt.title(i)    
-    # for j in range(len(regolith_contours)):   
-    #     cont = regolith_contours[j]
-    #     #Draw rect
-    #     x,y,w,h = cv2.boundingRect(cont)
-    #     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    #     crop = gray[y:y+h, x:x+w]
-        
-    #     profile = getProfile(crop)
-        
-    #     plt.plot(profile)
-  
-    # plt.show()
-    
-    
     contourCounter = 1
     for j in range(len(regolith_contours)):
         cont = regolith_contours[j]
@@ -363,16 +347,6 @@ for i in images:
         reg_heights = calcDistance(hx, hy, height, vslope, polyLine)*scale
       
         
-        # plt.title(i)
-        # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-        # plt.gca().invert_yaxis()
-        # plt.plot(*polyLine.xy)
-        # x_left, x_right = plt.gca().get_xlim()
-        # y_low, y_high = plt.gca().get_ylim()
-        # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
-        
-        # plt.show()
-        
         if(len(reg_heights) > 0 and len(reg_widths) > 0):
             cv2.drawContours(img, [cont], -1, (0,255,0), 3)
             drawLabel(img, cont, contourCounter)
@@ -385,7 +359,7 @@ for i in images:
             print("\n")
             
             
-            
+            #create row entry
             df.loc[len(df)] = [i, contourCounter,np.average(reg_heights), np.max(reg_heights),
                                np.average(reg_widths), np.max(reg_widths), cv2.contourArea(cont)*scale**2]
             
@@ -395,6 +369,6 @@ for i in images:
     print("Wrote image, ", i) 
     
 df.sort_values(["Image_Name", "Position"], inplace=True)
-df.to_excel(excelPath+'/'+"Avearge_Dimensions_White.xlsx", index=False)
+df.to_excel(excelPath+'/'+"Avearge_Dimensions.xlsx", index=False)
 
     
