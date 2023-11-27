@@ -379,7 +379,7 @@ for i in images:
             print("\n")
             
             
-            #create row entry
+            #create row entries
             df.loc[len(df)] = [i, contourCounter,np.average(reg_heights), np.max(reg_heights),
                                np.average(reg_widths), np.max(reg_widths), cv2.contourArea(cont)*scale**2]
             
