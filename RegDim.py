@@ -1,3 +1,31 @@
+"""
+The scripts takes images of regoliths as input and then returns images with contours 
+and labels around the samples. An excel file is also created and it outlines 
+the dimension, average height, width and etc. 
+
+The folder 'Dimension_Routine_Output' will contain the labelled images and it's
+created in the original images' folder. The excel file will also be placed
+in this folder 
+
+
+
+How to use:
+    1. Change imagePath to image directory 
+    2. Change scale to scale of images
+    3. Run 
+    
+
+
+How it works (VERY brief overview): 
+Credit to Herbie Glender: https://forum.image.sc/t/how-to-segement-sample-from-background/85003/2
+    
+    1. The regoliths are first segmented using the intensity profile. The variable
+    'span' outlines how much padding to add when cropping the image
+    2. We use this cropped image to find the regolith's contour
+    3. The contours are turned to Shapely objects and then the dimensions are calculated 
+    using their intersection function
+        - more info: https://shapely.readthedocs.io/
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
@@ -136,18 +164,7 @@ def calcDistance(x_points, y_points, w, s, realContour):
             interPoints = lineString.intersection(realContour)
             a,b = getPointsofObject(interPoints)
            
-            allWidths.append(getMaxDist(a, b))
-            
-            # plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
-            # plt.gca().invert_yaxis()
-            # plt.plot(x_points, y_points)
-            # plt.plot(nx,ny)
-            # plt.plot(*realContour.xy)
-            # x_left, x_right = plt.gca().get_xlim()
-            # y_low, y_high = plt.gca().get_ylim()
-            # plt.gca().set_aspect(abs((x_right-x_left)/(y_low-y_high))/aspect)
-            # plt.show()
-            
+            allWidths.append(getMaxDist(a, b))            
             
     return np.array(allWidths)
     
@@ -275,8 +292,9 @@ def createDir(root, folderName):
         os.makedirs(newPath)
         
     return newPath
+
 #================================MAIN=========================================
-imagePath="C:/Users/v.jayaweera/Documents/Tim/Porosity/PNG"
+imagePath="C:/Users/v.jayaweera/Documents/Tim/Porosity/PNG" # change here
 destPath = createDir(imagePath, "Dimension_Routine_Output")
 excelPath = destPath
 
@@ -287,6 +305,7 @@ span = 35
 scale = 0.05
 df = pd.DataFrame(columns=['Image_Name', 'Position', 'Average_Height (mm)', 'Max_Height (mm)', 'Average_Width (mm)', 'Max_Width  (mm)', 'Area  (mm^2)'])
 
+
 # create list of image names
 images = []
 for i in range(len(dirPictures)):
@@ -294,6 +313,7 @@ for i in range(len(dirPictures)):
     
     if image_name.split('.')[-1].lower() in acceptedFileTypes:
         images.append(image_name)
+        
         
 # start of the loop to remove the background
 for i in images:
@@ -303,7 +323,7 @@ for i in images:
         
     regolith_contours = findRegolithConoturs(img)
     
-    #sort contours to appear from left to right
+    # sort contours to appear from left to right
     sortedIndex = leftToRight(regolith_contours)
     regolith_contours = [newK for _, newK in sorted(zip(sortedIndex, regolith_contours))]
     
