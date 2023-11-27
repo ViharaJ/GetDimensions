@@ -364,10 +364,12 @@ for i in images:
                                np.average(reg_widths), np.max(reg_widths), cv2.contourArea(cont)*scale**2]
             
             contourCounter = contourCounter + 1
-    
+            
+    # save image with labels and contour
     cv2.imwrite(destPath  + '/' + i, img)
     print("Wrote image, ", i) 
-    
+
+# save excel file
 df.sort_values(["Image_Name", "Position"], inplace=True)
 df.to_excel(excelPath+'/'+"Avearge_Dimensions.xlsx", index=False)
 
